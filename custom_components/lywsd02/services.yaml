@@ -1,0 +1,13 @@
+set_time:
+  description: Set time on a LYWSD02
+  fields:
+    mac:
+      description: BLE MAC Address of a LYWSD02
+      example: "01:23:45:67:89:AB"
+      required: true
+    timestamp:
+      description: Time to Set
+      example: 1702200346
+    tz_offset:
+      description: Timezone Offset in Hours
+      example: 3

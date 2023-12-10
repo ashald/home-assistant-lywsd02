@@ -1,0 +1,14 @@
+{
+    "domain": "lywsd02",
+    "name": "LYWSD02 Sync",
+    "codeowners": [
+        "ashald"
+    ],
+    "dependencies": [],
+    "documentation": "https://github.com/ashald/home-assistant-lywsd02",
+    "iot_class": "local_polling",
+    "requirements": [
+        "bluetooth_adapters"
+    ],
+    "version": "0.1.0"
+}
