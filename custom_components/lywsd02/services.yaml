@@ -6,8 +6,8 @@ set_time:
       example: "01:23:45:67:89:AB"
       required: true
     timestamp:
-      description: Time to Set
+      description: UNIX Epoch Value Representing Desired Time
       example: 1702200346
     tz_offset:
       description: Timezone Offset in Hours
-      example: 3
+      example: -3
