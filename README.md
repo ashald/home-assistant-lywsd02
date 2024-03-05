@@ -2,7 +2,7 @@
 
 ## Overview
 
-This itnegration allows to configure LYWSD02 e-Ink clocks via HomeAssistant bluetooth integration.
+This integration allows to configure LYWSD02 e-Ink clocks via HomeAssistant bluetooth integration.
 This means that you can leverage all your ESPHome Bluetooth proxies for best coverage.
 
 See [./info.md](./info.md) for usage details.

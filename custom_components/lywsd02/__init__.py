@@ -35,7 +35,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     async def set_time(call: ServiceCall) -> None:
         mac = call.data['mac'].upper()
         if not mac:
-            _LOGGER.error(f"The 'mac' parameter is missinf from service call: {call.data}.")
+            _LOGGER.error(f"The 'mac' parameter is missing from service call: {call.data}.")
             return
 
         tz_offset = call.data.get('tz_offset', 0)
