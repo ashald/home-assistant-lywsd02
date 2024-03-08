@@ -11,3 +11,9 @@ set_time:
     tz_offset:
       description: Timezone Offset in Hours
       example: -3
+    temp_mode:
+      description: C = Celsius, F = Fahrenheit
+      example: "C"
+    clock_mode:
+      description: 12 or 24 hour operation
+      example: 12
