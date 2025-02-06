@@ -39,11 +39,6 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             return
 
         tz_offset = call.data.get('tz_offset', 0)
-        timestamp = int(
-            call.data.get('timestamp') or get_localized_timestamp()
-        )
-
-        data = struct.pack('Ib', timestamp, tz_offset)
 
         ble_device = bluetooth.async_ble_device_from_address(
             hass,
@@ -75,7 +70,14 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             _LOGGER.debug(f"Will set clock_mode")
             ckmo_set = True
 
-        async with BleakClient(ble_device) as client:
+        tout = int(call.data.get('timeout', 10))
+        
+        async with BleakClient(ble_device, timeout=tout) as client:
+            timestamp = int(
+                call.data.get('timestamp') or get_localized_timestamp()
+            )
+
+            data = struct.pack('Ib', timestamp, tz_offset)
             await client.write_gatt_char(_UUID_TIME, data)
             if temo_set:
                 await client.write_gatt_char(_UUID_TEMO, data_temp_mode)
