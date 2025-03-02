@@ -17,3 +17,6 @@ set_time:
     clock_mode:
       description: 12 or 24 hour operation
       example: 12
+    timeout:
+      description: How long to wait for connection with LYWSD02 - increase if update is failing
+      example: 10

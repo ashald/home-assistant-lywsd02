@@ -24,4 +24,22 @@ See [./services.yaml](./custom_components/lywsd02/services.yaml) for details.
 
 ## Setting Unit
 
-Will be added in future versions.
+You can also set tempaerature unit (F/C), TZ offset, as well as clock mode (12/24) via optional parameters:
+```yaml
+service: lywsd02.set_time
+data:
+  mac: A1:B2:C3:D4:E5:F6
+  clock_mode: 24
+  tz_offset: 0
+  temp_mode: 'C'
+```
+
+## Timeout
+
+If you get an error establishing connection - could be because it takes longer than expected to get the Bluetooth proxy working. Consider increasing `timeout` from default 10s to a larger value:
+```yaml
+service: lywsd02.set_time
+data:
+  mac: A1:B2:C3:D4:E5:F6
+  timeout: 60
+```
