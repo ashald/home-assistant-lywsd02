@@ -70,12 +70,12 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             ckmo_set = True
             _LOGGER.debug("Clock mode set: %s", ckmo)
 
-        # ✅ Close any stale BLE connections for this device
+        # Close any stale BLE connections for this device
         await close_stale_connections(ble_device)
 
         client = None
         try:
-            # 🔧 Establish a reliable BLE connection with retries
+            # Establish a reliable BLE connection with retries
             client = await establish_connection(
                 BleakClient,
                 ble_device,
