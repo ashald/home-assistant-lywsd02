@@ -6,7 +6,7 @@ import logging
 
 from datetime import datetime
 
-from bleak import BleakClient
+from bleak_retry_connector import BleakClientWithServiceCache, establish_connection
 
 from homeassistant.core import HomeAssistant, ServiceCall, callback
 from homeassistant.helpers.typing import ConfigType
@@ -72,8 +72,18 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             ckmo_set = True
 
         tout = int(call.data.get('timeout', 60))
-        
-        async with BleakClient(ble_device, timeout=tout) as client:
+
+        # A plain BleakClient regularly fails on the first attempt when the
+        # device is reached through an ESPHome/Shelly Bluetooth proxy rather
+        # than a local adapter. establish_connection retries and handles the
+        # proxy's connection slots; `timeout` is forwarded to the client.
+        client = await establish_connection(
+            BleakClientWithServiceCache,
+            ble_device,
+            mac,
+            timeout=tout,
+        )
+        try:
             timestamp = int(
                 call.data.get('timestamp') or get_localized_timestamp()
             )
@@ -84,6 +94,8 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                 await client.write_gatt_char(_UUID_TEMO, data_temp_mode)
             if ckmo_set:
                 await client.write_gatt_char(_UUID_TIME, data_clock_mode)
+        finally:
+            await client.disconnect()
 
         _LOGGER.info(f"Done - refreshed time on '{mac}' to '{timestamp}' with offset of '{tz_offset}' hours.")
 
