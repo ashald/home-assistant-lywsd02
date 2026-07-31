@@ -21,11 +21,18 @@ _UUID_TIME = 'EBE0CCB7-7A0A-4B0C-8A1A-6FF2997DA3A6'
 _UUID_TEMO = 'EBE0CCBE-7A0A-4B0C-8A1A-6FF2997DA3A6'
 
 def get_localized_timestamp():
+    """Return the current time as a 'fake UTC' epoch.
+
+    The device reads the timestamp it receives as local wall-clock time, so
+    the UTC offset has to be baked in. The previous implementation computed
+    (utc - local).seconds, but .seconds on a negative timedelta normalises to
+    days=-1: at UTC+2 it yielded 79200 instead of -7200, shifting the value by
+    -22h rather than +2h. The time of day came out right by coincidence, the
+    date was one day behind.
+    """
     now = int(time.time())
-    utc = datetime.utcfromtimestamp(now)
-    local = datetime.fromtimestamp(now)
-    diff = (utc-local).seconds
-    return now - diff
+    offset = datetime.now().astimezone().utcoffset()
+    return now + int(offset.total_seconds())
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """
