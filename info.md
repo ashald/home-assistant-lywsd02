@@ -1,16 +1,12 @@
-# LYWSD02 Sync
+# LYWSD02 Sync Clock
 
-Once installed, you need to add following to HomeAssistant's `configuration.yaml` and restart it:
-```yaml
-lywsd02:
-```
+After installation, add the integration from **Settings > Devices & services > Add integration** and select **LYWSD02 Sync Clock**. The setup only adds the sync service; clock MAC addresses are provided when calling the service. No YAML configuration is required.
 
 ## Setting Time
 
-Now you have have `lywsd.set_time` service that can be used to set time on a LYWSD02 given its BLE MAC address.
+Now you have the `lywsd02.set_time` service that can be used to set time on a LYWSD02.
 
-Only MAC address parameter is requried, and it will set the time to what is on your HomeAssistant.
-Here's how the minimal invocation looks like:
+Provide the target clock MAC address when calling the service. Here's how the minimal invocation looks:
 ```yaml
 service: lywsd02.set_time
 data:

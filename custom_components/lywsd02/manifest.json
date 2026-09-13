@@ -1,14 +1,15 @@
 {
     "domain": "lywsd02",
-    "name": "LYWSD02 Sync",
+    "name": "LYWSD02 Sync Clock",
     "codeowners": [
         "ashald"
     ],
+    "config_flow": true,
     "dependencies": [],
     "documentation": "https://github.com/ashald/home-assistant-lywsd02",
     "iot_class": "local_polling",
     "requirements": [
         "bluetooth_adapters"
     ],
-    "version": "0.2.0"
+    "version": "0.4.0"
 }

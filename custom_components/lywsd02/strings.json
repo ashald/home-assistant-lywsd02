@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configure LYWSD02 Sync Clock",
+        "description": "Add the LYWSD02 sync service. Clock addresses are entered when calling the service."
+      }
+    },
+    "abort": {
+      "already_configured": "The LYWSD02 Sync Clock service is already configured."
+    }
+  }
+}

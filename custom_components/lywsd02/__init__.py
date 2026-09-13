@@ -8,11 +8,13 @@ from datetime import datetime
 from bleak import BleakClient
 from bleak_retry_connector import establish_connection, close_stale_connections
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall, callback
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.components import bluetooth
 
 DOMAIN = "lywsd02"
+CONF_MAC = "mac"
 _LOGGER = logging.getLogger(__name__)
 
 _UUID_TIME = "EBE0CCB7-7A0A-4B0C-8A1A-6FF2997DA3A6"
@@ -31,11 +33,25 @@ def get_localized_timestamp() -> int:
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Register the LYWSD02 time update service."""
 
+    hass.data.setdefault(DOMAIN, {})
+
     @callback
     async def set_time(call: ServiceCall) -> None:
-        mac = call.data.get("mac", "").upper()
+        mac = call.data.get(CONF_MAC, "").upper()
         if not mac:
-            _LOGGER.error("Missing 'mac' parameter in service call: %s", call.data)
+            configured_macs = [
+                entry_data[CONF_MAC]
+                for entry_data in hass.data[DOMAIN].values()
+                if CONF_MAC in entry_data
+            ]
+            if len(configured_macs) == 1:
+                mac = configured_macs[0]
+
+        if not mac:
+            _LOGGER.error(
+                "Missing 'mac' parameter. Configure a LYWSD02 integration entry "
+                "or provide the address in the service call."
+            )
             return
 
         tz_offset = call.data.get("tz_offset", 0)
@@ -113,4 +129,18 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                 pass
 
     hass.services.async_register(DOMAIN, "set_time", set_time)
+    return True
+
+
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Set up a LYWSD02 device configured through the UI."""
+
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = entry.data
+    return True
+
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload a LYWSD02 device configured through the UI."""
+
+    hass.data[DOMAIN].pop(entry.entry_id, None)
     return True
