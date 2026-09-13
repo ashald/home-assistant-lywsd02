@@ -4,7 +4,7 @@ set_time:
     mac:
       description: BLE MAC Address of a LYWSD02
       example: "01:23:45:67:89:AB"
-      required: false
+      required: true
     timestamp:
       description: UNIX Epoch Value Representing Desired Time
       example: 1702200346
