@@ -12,9 +12,9 @@ Configure Xiaomi LYWSD02 e-ink clocks through Home Assistant Bluetooth. The inte
 2. Open the menu and choose **Custom repositories**.
 3. Add:
 
-	 ```text
-	 https://github.com/ashald/home-assistant-lywsd02
-	 ```
+  ```text
+  https://github.com/shirou93/home-assistant-lywsd02
+  ```
 
 4. Select **Integration** as the category and install **LYWSD02 Sync Clock**.
 5. Restart Home Assistant.
@@ -37,7 +37,7 @@ The integration provides the `lywsd02.set_time` service. Provide the target cloc
 ```yaml
 service: lywsd02.set_time
 data:
-	mac: A1:B2:C3:D4:E5:F6
+  mac: A1:B2:C3:D4:E5:F6
 ```
 
 The service sets the clock to the current Home Assistant time. Create an automation to run it periodically.
@@ -49,11 +49,11 @@ The service supports the following optional parameters:
 ```yaml
 service: lywsd02.set_time
 data:
-	mac: A1:B2:C3:D4:E5:F6
-	timeout: 60
-	clock_mode: 24
-	temp_mode: C
-	tz_offset: 0
+  mac: A1:B2:C3:D4:E5:F6
+  timeout: 60
+  clock_mode: 24
+  temp_mode: C
+  tz_offset: 0
 ```
 
 - `mac`: target clock address. Required for every call.
