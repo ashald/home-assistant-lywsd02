@@ -2,7 +2,8 @@
     "domain": "lywsd02",
     "name": "LYWSD02 Sync Clock",
     "codeowners": [
-        "ashald"
+        "ashald",
+        "shirou93"
     ],
     "config_flow": true,
     "dependencies": [],
