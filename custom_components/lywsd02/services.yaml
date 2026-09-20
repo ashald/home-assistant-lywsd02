@@ -15,7 +15,9 @@ set_time:
       description: C = Celsius, F = Fahrenheit
       example: "C"
     clock_mode:
-      description: 12 or 24 hour operation
+      description: >-
+        12 or 24 hour operation. Only supported on the LYWSD02MMC; the plain
+        LYWSD02 rejects it (a warning is logged and the time is still set).
       example: 12
     timeout:
       description: How long to wait for connection with LYWSD02 - increase if update is failing

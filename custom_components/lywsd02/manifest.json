@@ -13,5 +13,5 @@
         "bluetooth_adapters",
         "bleak-retry-connector>=3.0.0"
     ],
-    "version": "0.3.0"
+    "version": "0.3.1"
 }

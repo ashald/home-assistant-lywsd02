@@ -6,6 +6,7 @@ import logging
 
 from datetime import datetime
 
+from bleak.exc import BleakError
 from bleak_retry_connector import BleakClientWithServiceCache, establish_connection
 
 from homeassistant.core import HomeAssistant, ServiceCall
@@ -99,7 +100,24 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             if temo_set:
                 await client.write_gatt_char(_UUID_TEMO, data_temp_mode)
             if ckmo_set:
-                await client.write_gatt_char(_UUID_TIME, data_clock_mode)
+                # 12/24-hour switching writes a 7-byte clock-format value to the
+                # time characteristic. This is validated against a Mi Home app
+                # capture on the LYWSD02MMC (0xAA => 12h, 0x00 => 24h, see #10),
+                # but on the plain LYWSD02 the same characteristic is a fixed
+                # 5-byte time attribute and rejects it with "Invalid attribute
+                # length". Treat a rejection as "unsupported on this model" and
+                # warn rather than failing the call - the time is already set.
+                try:
+                    await client.write_gatt_char(_UUID_TIME, data_clock_mode)
+                except BleakError as err:
+                    _LOGGER.warning(
+                        "clock_mode (12/24-hour) could not be set on '%s': it is "
+                        "only supported on the LYWSD02MMC and this device "
+                        "rejected the write (%s). The time was set successfully "
+                        "- remove the 'clock_mode' parameter to silence this "
+                        "warning.",
+                        mac, err,
+                    )
         finally:
             await client.disconnect()
 
