@@ -6,7 +6,10 @@ This integration allows to configure LYWSD02 e-Ink clocks via HomeAssistant blue
 This means that you can leverage all your ESPHome Bluetooth proxies for best coverage.
 
 It exposes a single `lywsd02.set_time` service that syncs the clock (and,
-optionally, the temperature unit and 12/24-hour format).
+optionally, the temperature unit and 12/24-hour format). If you'd rather not
+call a service by hand, adding the integration via **Settings -> Devices &
+Services** also gives a device with a one-press "Sync time" button; the two
+are independent, use whichever you prefer.
 
 See [./info.md](./info.md) for usage details.
 

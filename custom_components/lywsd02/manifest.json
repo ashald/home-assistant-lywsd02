@@ -1,9 +1,18 @@
 {
     "domain": "lywsd02",
     "name": "LYWSD02 Sync",
+    "bluetooth": [
+        {
+            "local_name": "LYWSD02"
+        },
+        {
+            "local_name": "LYWSD02MMC"
+        }
+    ],
     "codeowners": [
         "ashald"
     ],
+    "config_flow": true,
     "dependencies": [
         "bluetooth"
     ],
