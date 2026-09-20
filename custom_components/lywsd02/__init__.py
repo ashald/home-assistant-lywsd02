@@ -8,7 +8,7 @@ from datetime import datetime
 
 from bleak_retry_connector import BleakClientWithServiceCache, establish_connection
 
-from homeassistant.core import HomeAssistant, ServiceCall, callback
+from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.components import bluetooth
 
@@ -38,8 +38,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """
     Based off https://github.com/h4/lywsd02
     """
-    
-    @callback
+
     async def set_time(call: ServiceCall) -> None:
         mac = call.data['mac'].upper()
         if not mac:
