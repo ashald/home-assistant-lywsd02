@@ -4,8 +4,6 @@ import time
 import struct
 import logging
 
-from datetime import datetime
-
 from bleak.exc import BleakError
 from bleak_retry_connector import BleakClientWithServiceCache, establish_connection
 
@@ -15,6 +13,7 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.components import bluetooth
+from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN
 
@@ -26,18 +25,25 @@ _LOGGER = logging.getLogger(__name__)
 _UUID_TIME = 'EBE0CCB7-7A0A-4B0C-8A1A-6FF2997DA3A6'
 _UUID_TEMO = 'EBE0CCBE-7A0A-4B0C-8A1A-6FF2997DA3A6'
 
-def get_localized_timestamp():
+def get_localized_timestamp() -> int:
     """Return the current time as a 'fake UTC' epoch.
 
     The device reads the timestamp it receives as local wall-clock time, so
-    the UTC offset has to be baked in. The previous implementation computed
-    (utc - local).seconds, but .seconds on a negative timedelta normalises to
-    days=-1: at UTC+2 it yielded 79200 instead of -7200, shifting the value by
-    -22h rather than +2h. The time of day came out right by coincidence, the
-    date was one day behind.
+    the offset has to be baked in - Home Assistant's own configured time
+    zone (Settings -> General -> Time Zone, via dt_util), not the host
+    machine's OS time zone. Those two commonly diverge: containerized
+    installs typically stay on UTC at the OS level regardless of what's
+    configured in HA itself, which previously synced a UTC timestamp as if
+    it were local wall-clock time (e.g. it's set to UTC instead of
+    Europe/Vilnius even though HA is correctly configured for it).
+
+    An earlier implementation computed (utc - local).seconds, but .seconds
+    on a negative timedelta normalises to days=-1: at UTC+2 it yielded 79200
+    instead of -7200, shifting the value by -22h rather than +2h. The time
+    of day came out right by coincidence, the date was one day behind.
     """
     now = int(time.time())
-    offset = datetime.now().astimezone().utcoffset()
+    offset = dt_util.now().utcoffset()
     return now + int(offset.total_seconds())
 
 
@@ -45,7 +51,7 @@ async def async_sync_lywsd02(
     hass: HomeAssistant,
     mac: str,
     *,
-    tz_offset: int = 0,
+    tz_offset: int | None = None,
     timestamp: int | None = None,
     temp_mode: str | None = None,
     clock_mode: int | None = None,
@@ -60,6 +66,8 @@ async def async_sync_lywsd02(
     Raises HomeAssistantError if the device can't be found or connected to.
     """
     mac = mac.upper()
+    if tz_offset is None:
+        tz_offset = round(dt_util.now().utcoffset().total_seconds() / 3600)
 
     ble_device = bluetooth.async_ble_device_from_address(
         hass,
@@ -141,7 +149,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             await async_sync_lywsd02(
                 hass,
                 mac,
-                tz_offset=call.data.get('tz_offset', 0),
+                tz_offset=call.data.get('tz_offset'),
                 timestamp=call.data.get('timestamp'),
                 temp_mode=call.data.get('temp_mode'),
                 clock_mode=call.data.get('clock_mode', 0),
