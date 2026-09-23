@@ -9,7 +9,10 @@ set_time:
       description: UNIX Epoch Value Representing Desired Time
       example: 1702200346
     tz_offset:
-      description: Timezone Offset in Hours
+      description: >-
+        Timezone offset in hours stored on the device, which adds it to the
+        timestamp itself. Without `timestamp`, the displayed time is Home
+        Assistant's local time whatever this is set to.
       example: -3
     temp_mode:
       description: C = Celsius, F = Fahrenheit

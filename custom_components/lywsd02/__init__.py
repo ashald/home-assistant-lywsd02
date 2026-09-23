@@ -11,6 +11,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.components import bluetooth
 from homeassistant.util import dt as dt_util
@@ -19,41 +20,36 @@ from .const import DOMAIN
 
 PLATFORMS: list[Platform] = [Platform.BUTTON]
 
+CONFIG_SCHEMA = cv.empty_config_schema(DOMAIN)
+
 _LOGGER = logging.getLogger(__name__)
 
 
 _UUID_TIME = 'EBE0CCB7-7A0A-4B0C-8A1A-6FF2997DA3A6'
 _UUID_TEMO = 'EBE0CCBE-7A0A-4B0C-8A1A-6FF2997DA3A6'
 
-def get_localized_timestamp(tz_offset_hours: int) -> int:
-    """Return a 'fake UTC' epoch carrying only the sub-hour remainder of the offset.
+def get_localized_timestamp(tz_offset: int = 0) -> int:
+    """Return the epoch that makes the device display Home Assistant's local time.
 
-    The device itself applies `tz_offset` (whole hours, written alongside this
-    timestamp in the same characteristic) on top of whatever epoch it is
-    given to compute the displayed wall-clock time. Baking the full local
-    offset into the timestamp *and* sending the same offset again via
-    `tz_offset` double-counts it - e.g. at UTC+3 the device ends up 3 hours
-    ahead of the correct time, since both applications add the offset.
+    The device shows `timestamp + tz_offset hours` as wall-clock time, so the
+    local UTC offset is baked into the timestamp minus whatever part of it
+    `tz_offset` already contributes. Baking the full offset in regardless of
+    `tz_offset` double-counts it (see #13): at UTC+3 with tz_offset=3 the
+    clock ran 3 hours fast.
 
-    Only the fractional-hour remainder (relevant for offsets like UTC+5:30)
-    needs to ride in the timestamp; whole hours belong solely in `tz_offset`.
-
-    Home Assistant's own configured time zone is used (Settings -> General ->
-    Time Zone, via dt_util), not the host machine's OS time zone - those
-    commonly diverge, since containerized installs typically stay on UTC at
-    the OS level regardless of what's configured in HA itself.
+    Uses Home Assistant's configured time zone (dt_util), not the host OS
+    one - containerized installs typically keep the OS on UTC.
     """
     now = int(time.time())
-    offset_seconds = dt_util.now().utcoffset().total_seconds()
-    remainder_seconds = offset_seconds - tz_offset_hours * 3600
-    return now + int(remainder_seconds)
+    offset = dt_util.now().utcoffset()
+    return now + int(offset.total_seconds()) - tz_offset * 3600
 
 
 async def async_sync_lywsd02(
     hass: HomeAssistant,
     mac: str,
     *,
-    tz_offset: int | None = None,
+    tz_offset: int = 0,
     timestamp: int | None = None,
     temp_mode: str | None = None,
     clock_mode: int | None = None,
@@ -68,9 +64,6 @@ async def async_sync_lywsd02(
     Raises HomeAssistantError if the device can't be found or connected to.
     """
     mac = mac.upper()
-    tz_offset_given = tz_offset is not None
-    if tz_offset is None:
-        tz_offset = round(dt_util.now().utcoffset().total_seconds() / 3600)
 
     ble_device = bluetooth.async_ble_device_from_address(
         hass,
@@ -108,11 +101,6 @@ async def async_sync_lywsd02(
     try:
         if timestamp is not None:
             resolved_timestamp = int(timestamp)
-        elif tz_offset_given:
-            # A caller-supplied tz_offset with no timestamp means they want
-            # the device to apply that offset itself - send the raw UTC
-            # epoch rather than baking in HA's own offset on top of it.
-            resolved_timestamp = int(time.time())
         else:
             resolved_timestamp = get_localized_timestamp(tz_offset)
 
@@ -160,7 +148,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             await async_sync_lywsd02(
                 hass,
                 mac,
-                tz_offset=call.data.get('tz_offset'),
+                tz_offset=call.data.get('tz_offset', 0),
                 timestamp=call.data.get('timestamp'),
                 temp_mode=call.data.get('temp_mode'),
                 clock_mode=call.data.get('clock_mode', 0),
