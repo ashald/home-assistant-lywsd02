@@ -25,26 +25,28 @@ _LOGGER = logging.getLogger(__name__)
 _UUID_TIME = 'EBE0CCB7-7A0A-4B0C-8A1A-6FF2997DA3A6'
 _UUID_TEMO = 'EBE0CCBE-7A0A-4B0C-8A1A-6FF2997DA3A6'
 
-def get_localized_timestamp() -> int:
-    """Return the current time as a 'fake UTC' epoch.
+def get_localized_timestamp(tz_offset_hours: int) -> int:
+    """Return a 'fake UTC' epoch carrying only the sub-hour remainder of the offset.
 
-    The device reads the timestamp it receives as local wall-clock time, so
-    the offset has to be baked in - Home Assistant's own configured time
-    zone (Settings -> General -> Time Zone, via dt_util), not the host
-    machine's OS time zone. Those two commonly diverge: containerized
-    installs typically stay on UTC at the OS level regardless of what's
-    configured in HA itself, which previously synced a UTC timestamp as if
-    it were local wall-clock time (e.g. it's set to UTC instead of
-    Europe/Vilnius even though HA is correctly configured for it).
+    The device itself applies `tz_offset` (whole hours, written alongside this
+    timestamp in the same characteristic) on top of whatever epoch it is
+    given to compute the displayed wall-clock time. Baking the full local
+    offset into the timestamp *and* sending the same offset again via
+    `tz_offset` double-counts it - e.g. at UTC+3 the device ends up 3 hours
+    ahead of the correct time, since both applications add the offset.
 
-    An earlier implementation computed (utc - local).seconds, but .seconds
-    on a negative timedelta normalises to days=-1: at UTC+2 it yielded 79200
-    instead of -7200, shifting the value by -22h rather than +2h. The time
-    of day came out right by coincidence, the date was one day behind.
+    Only the fractional-hour remainder (relevant for offsets like UTC+5:30)
+    needs to ride in the timestamp; whole hours belong solely in `tz_offset`.
+
+    Home Assistant's own configured time zone is used (Settings -> General ->
+    Time Zone, via dt_util), not the host machine's OS time zone - those
+    commonly diverge, since containerized installs typically stay on UTC at
+    the OS level regardless of what's configured in HA itself.
     """
     now = int(time.time())
-    offset = dt_util.now().utcoffset()
-    return now + int(offset.total_seconds())
+    offset_seconds = dt_util.now().utcoffset().total_seconds()
+    remainder_seconds = offset_seconds - tz_offset_hours * 3600
+    return now + int(remainder_seconds)
 
 
 async def async_sync_lywsd02(
@@ -66,6 +68,7 @@ async def async_sync_lywsd02(
     Raises HomeAssistantError if the device can't be found or connected to.
     """
     mac = mac.upper()
+    tz_offset_given = tz_offset is not None
     if tz_offset is None:
         tz_offset = round(dt_util.now().utcoffset().total_seconds() / 3600)
 
@@ -103,7 +106,15 @@ async def async_sync_lywsd02(
         timeout=timeout,
     )
     try:
-        resolved_timestamp = int(timestamp or get_localized_timestamp())
+        if timestamp is not None:
+            resolved_timestamp = int(timestamp)
+        elif tz_offset_given:
+            # A caller-supplied tz_offset with no timestamp means they want
+            # the device to apply that offset itself - send the raw UTC
+            # epoch rather than baking in HA's own offset on top of it.
+            resolved_timestamp = int(time.time())
+        else:
+            resolved_timestamp = get_localized_timestamp(tz_offset)
 
         data = struct.pack('Ib', resolved_timestamp, tz_offset)
         await client.write_gatt_char(_UUID_TIME, data)
