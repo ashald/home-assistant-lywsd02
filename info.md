@@ -34,6 +34,21 @@ data:
   temp_mode: 'C'
 ```
 
+## Time Offset
+
+By default the clock is set to Home Assistant's current time. Use the optional
+`offset` parameter (in seconds) to add a few seconds and make the clock run
+ahead of Home Assistant — useful to compensate for the clock's own drift or the
+delay between building the payload and the device applying it:
+```yaml
+service: lywsd02.set_time
+data:
+  mac: A1:B2:C3:D4:E5:F6
+  offset: 5
+```
+`offset` accepts positive and negative integers and is applied on top of the
+current time as well as of an explicit `timestamp`.
+
 > **Note:** `clock_mode` (12/24-hour) is only supported on the **LYWSD02MMC**.
 > The payload is validated against a Mi Home app capture, but on the plain
 > LYWSD02 the time characteristic is fixed-length and rejects it — in that case

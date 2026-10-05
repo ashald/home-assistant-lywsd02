@@ -47,6 +47,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             return
 
         tz_offset = call.data.get('tz_offset', 0)
+        offset = int(call.data.get('offset', 0))
 
         ble_device = bluetooth.async_ble_device_from_address(
             hass,
@@ -93,7 +94,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         try:
             timestamp = int(
                 call.data.get('timestamp') or get_localized_timestamp()
-            )
+            ) + offset
 
             data = struct.pack('Ib', timestamp, tz_offset)
             await client.write_gatt_char(_UUID_TIME, data)
@@ -121,7 +122,10 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         finally:
             await client.disconnect()
 
-        _LOGGER.info(f"Done - refreshed time on '{mac}' to '{timestamp}' with offset of '{tz_offset}' hours.")
+        _LOGGER.info(
+            f"Done - refreshed time on '{mac}' to '{timestamp}' with offset of "
+            f"'{offset}' seconds and tz_offset of '{tz_offset}' hours."
+        )
 
     hass.services.async_register(DOMAIN, 'set_time', set_time)
 

@@ -8,6 +8,12 @@ set_time:
     timestamp:
       description: UNIX Epoch Value Representing Desired Time
       example: 1702200346
+    offset:
+      description: >-
+        Additional seconds to add to the time being set, allowing the clock to
+        be run ahead of Home Assistant (e.g. to compensate for drift). Applies
+        to the current time as well as to an explicit 'timestamp'.
+      example: 5
     tz_offset:
       description: Timezone Offset in Hours
       example: -3
