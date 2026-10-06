@@ -1,0 +1,24 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add a LYWSD02 / LYWSD02MMC",
+        "description": "Enter the Bluetooth MAC address of your Xiaomi LYWSD02 or LYWSD02MMC thermo-hygrometer. This adds a \"Sync time\" button for it; the lywsd02.set_time service keeps working on its own regardless.",
+        "data": {
+          "mac": "MAC address",
+          "name": "Name"
+        }
+      },
+      "bluetooth_confirm": {
+        "title": "Discovered LYWSD02 / LYWSD02MMC",
+        "description": "Do you want to set up {name}?"
+      }
+    },
+    "error": {
+      "invalid_mac": "That doesn't look like a valid MAC address."
+    },
+    "abort": {
+      "already_configured": "This device is already configured."
+    }
+  }
+}
