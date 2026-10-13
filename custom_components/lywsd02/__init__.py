@@ -10,10 +10,13 @@ from bleak.exc import BleakError
 from bleak_retry_connector import BleakClientWithServiceCache, establish_connection
 
 from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.components import bluetooth
 
 DOMAIN = "lywsd02"
+
+CONFIG_SCHEMA = cv.empty_config_schema(DOMAIN)
 
 _LOGGER = logging.getLogger(__name__)
 
