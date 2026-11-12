@@ -19,6 +19,9 @@ data:
 
 Now you can setup an automation to invoke this service as often as you'd like to sync LYWSD02's time.
 
+If the clock's temperature and humidity stop updating in Home Assistant, see
+"Known issue: readings freeze" in the [README](./README.md) — a re-sync can fix it.
+
 If you want a lower-lever control - you can tweak the exact time set via additional parameters.
 See [./services.yaml](./custom_components/lywsd02/services.yaml) for details.
 
